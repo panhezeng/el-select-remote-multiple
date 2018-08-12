@@ -104,6 +104,9 @@
 
 ## 用法
 
+如果不希望每次使用组件时都显式传入ajax prop，则可以在全局注册组件前，通过Vue.use方式安装组件，给use传第二个参数，或者直接赋值window.ElSelectRemoteMultipleOptions，数据结构要求{ajax:axios}。这样后面多处使用该组件实例时就不需要显式传入ajax prop了。
+还有一种方法，就是再包一层，在包裹js里，直接修改此组件的props，其他地方使用修改后的组件
+
 ### internal vue element-ui 方式
 
 `npm i vue element-ui @panhezeng/el-select-remote-multiple -S`
