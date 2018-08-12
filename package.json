@@ -32,7 +32,7 @@
   "dependencies": {
     "@panhezeng/utils": "latest",
     "@panhezeng/vue-axios": "latest",
-    "element-ui": "^2.4.6",
+    "element-ui": "latest",
     "vue": "latest"
   },
   "devDependencies": {
