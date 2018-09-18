@@ -21,7 +21,7 @@
 ```vue
 <script>
   export default {
-  props: {
+    props: {
       // selectedObj是选中Option对象的key-value数组，el-select的默认选中数据显示，必须依赖此数据，如果只有selected的value数组，无法获得对应的label显示
       // 本组件默认选中数据的显示，只依赖此对象
       selectedObj: {
@@ -56,11 +56,6 @@
         },
         required: true
       },
-      // ajax返回res对象的数据节点名，默认和axios一样，是data
-      ajaxResDataKey: {
-        type: String,
-        default: 'data'
-      },
       // 获得下拉Options的api url
       apiUrlOptions: {
         type: String,
@@ -82,13 +77,18 @@
         type: Number,
         default: 50
       },
-      // ajax返回res对象获取Options数据的key名
-      apiUrlOptionsResKey: {
+      // ajax返回res对象获取Options数据的path
+      apiUrlOptionsResPath: {
         type: String,
         default: 'data'
       },
       // 创建Option的api地址，默认undefined，即el-select的allow-create属性为false，不允许创建Option
       apiUrlCreate: String,
+      // ajax返回res对象获取创建Options数据的path
+      apiUrlCreateResPath: {
+        type: String,
+        default: 'data'
+      },
       disabled: {
         type: Boolean,
         default: false

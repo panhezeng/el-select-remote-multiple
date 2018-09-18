@@ -10,6 +10,7 @@ module.exports = {
   },
   externals: {
     '@panhezeng/utils/dist/del-array-item-by-value.js': '@panhezeng/utils/dist/del-array-item-by-value.js',
+    '@panhezeng/utils/dist/get-object-item-by-path.js': '@panhezeng/utils/dist/get-object-item-by-path.js',
     'vue': 'Vue',
     'element-ui': {
       commonjs: 'element-ui',

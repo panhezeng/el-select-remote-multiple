@@ -4,6 +4,7 @@
     <el-select-remote-multiple
       :api-url-options="apiUrlOptions"
       :api-url-create="apiUrlCreate"
+      api-url-options-res-path="data.data"
       :selected-obj.sync="selectedObj" :selected.sync="selected"
       placeholder="输入关键字，从搜索结果中选择"></el-select-remote-multiple>
   </div>
@@ -20,8 +21,8 @@
   import '@panhezeng/vue-axios'
 
   window.ElSelectRemoteMultipleOptions = {ajax: Vue.http}
-  require('../../dist/el-select-remote-multiple.min')
-  //  require('../../src')
+//  require('../../dist/el-select-remote-multiple.min')
+    require('../../src')
 
   //  const ElSelectRemoteMultiple = () => import('../../dist/el-select-remote-multiple.min')
 

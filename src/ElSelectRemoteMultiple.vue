@@ -16,6 +16,7 @@
 <script>
   import { Select, Option } from 'element-ui'
   import delArrayItemByValue from '@panhezeng/utils/dist/del-array-item-by-value.js'
+  import getObjectItemByPath from '@panhezeng/utils/dist/get-object-item-by-path.js'
 
   export default {
     name: 'ElSelectRemoteMultiple',
@@ -55,11 +56,6 @@
         },
         required: true
       },
-      // ajax返回res对象的数据节点名，默认和axios一样，是data
-      ajaxResDataKey: {
-        type: String,
-        default: 'data'
-      },
       // 获得下拉Options的api url
       apiUrlOptions: {
         type: String,
@@ -81,13 +77,18 @@
         type: Number,
         default: 50
       },
-      // ajax返回res对象获取Options数据的key名
-      apiUrlOptionsResKey: {
+      // ajax返回res对象获取Options数据的path
+      apiUrlOptionsResPath: {
         type: String,
         default: 'data'
       },
       // 创建Option的api地址，默认undefined，即el-select的allow-create属性为false，不允许创建Option
       apiUrlCreate: String,
+      // ajax返回res对象获取创建Options数据的path
+      apiUrlCreateResPath: {
+        type: String,
+        default: 'data'
+      },
       disabled: {
         type: Boolean,
         default: false
@@ -124,15 +125,15 @@
       },
       updateSelected () {
         const selectedObj = []
-        const selected = []
-        this.labelsSelected.forEach(value => {
-          let obj = this.labelsOptions.find(o => String(o[this.valueKey]) === String(value))
+        for (let i = this.labelsSelected.length; i--;) {
+          const item = this.labelsSelected[i]
+          let obj = this.labelsOptions.find(o => String(o[this.valueKey]) === String(item))
           if (obj) {
             selectedObj.push(obj)
-            selected.push(obj[this.valueKey])
+          } else {
+            this.labelsSelected.splice(i, 1)
           }
-        })
-        this.labelsSelected = selected
+        }
         this.$emit('update:selectedObj', selectedObj)
         this.$emit('update:selected', this.labelsSelected)
       },
@@ -145,7 +146,8 @@
             let body = {}
             body[this.labelKey] = label
             this.ajax.post(this.apiUrlCreate, body).then((res) => {
-              this.labelsOptions = this.processLabelsOptions([res[this.ajaxResDataKey]])
+              this.labelsOptions = this.processLabelsOptions([getObjectItemByPath(res, this.apiUrlCreateResPath)])
+              this.$forceUpdate()
             })
             return true
           }
@@ -160,7 +162,6 @@
       },
       async getLabelsOptions (search = '') {
         search = String(search).trim()
-        console.log('search', search)
         if (search) {
           this.labelsLoading = true
           try {
@@ -171,12 +172,12 @@
                 [this.apiUrlOptionsParamsKey.search]: search
               }
             })
-            this.labelsOptions = this.processLabelsOptions(res[this.ajaxResDataKey][this.apiUrlOptionsResKey])
+            this.labelsOptions = this.processLabelsOptions(getObjectItemByPath(res, this.apiUrlOptionsResPath))
             this.createOption(search)
           } catch (e) {}
           this.labelsLoading = false
         } else {
-          this.labelsOptions = []
+          this.labelsOptions = this.processLabelsOptions()
         }
       }
     }
