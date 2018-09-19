@@ -33,7 +33,6 @@
       // selected是选中Option对象的value数组，默认valueKey是id，通常提交给后端此数组即可
       selected: {
         type: Array,
-        required: false,
         default () {
           return []
         }
@@ -128,7 +127,7 @@
         for (let i = this.labelsSelected.length; i--;) {
           const item = this.labelsSelected[i]
           let obj = options.find(o => String(o[this.valueKey]) === String(item))
-          if (obj) {
+          if (Object.prototype.toString.call(obj) === '[object Object]' && Object.keys(obj).length) {
             selectedObj.push(obj)
           }
         }
