@@ -34,7 +34,6 @@
       // selected是选中Option对象的value数组，默认valueKey是id，通常提交给后端此数组即可
       selected: {
         type: Array,
-        required: false,
         default () {
           return []
         }
@@ -75,7 +74,7 @@
       // 一次搜索多少条Options
       apiUrlOptionsLimit: {
         type: Number,
-        default: 50
+        default: 100
       },
       // ajax返回res对象获取Options数据的path
       apiUrlOptionsResPath: {
