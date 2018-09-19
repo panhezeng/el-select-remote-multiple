@@ -116,7 +116,12 @@
       initData () {
         if (this.needInitData) {
           this.labelsOptions = this.selectedObj
-          this.labelsSelected = this.selectedObj.map(o => o[this.valueKey])
+          this.labelsSelected = this.selectedObj.reduce((accumulator, current) => {
+            if (Object.prototype.toString.call(current) === '[object Object]' && current[this.valueKey]) {
+              accumulator.push(current[this.valueKey])
+            }
+            return accumulator
+          }, [])
           this.$nextTick(function () {this.labelsOptions = []})
         }
         this.needInitData = true
