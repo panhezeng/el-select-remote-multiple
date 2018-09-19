@@ -15,7 +15,6 @@
 
 <script>
   import { Select, Option } from 'element-ui'
-  import delArrayItemByValue from '@panhezeng/utils/dist/del-array-item-by-value.js'
   import getObjectItemByPath from '@panhezeng/utils/dist/get-object-item-by-path.js'
 
   export default {
@@ -75,7 +74,7 @@
       // 一次搜索多少条Options
       apiUrlOptionsLimit: {
         type: Number,
-        default: 50
+        default: 100
       },
       // ajax返回res对象获取Options数据的path
       apiUrlOptionsResPath: {
@@ -102,7 +101,8 @@
       return {
         labelsSelected: [],
         labelsOptions: [],
-        labelsLoading: false
+        labelsLoading: false,
+        needInitData: true
       }
     },
     watch: {
@@ -115,29 +115,30 @@
     },
     methods: {
       initData () {
-        const selected = this.selectedObj.map(o => o[this.valueKey])
-        // 如果selectedObj数据转换为selected后，和现有selected不相等，则进入
-        if (JSON.stringify(selected.sort()) !== JSON.stringify(this.labelsSelected.sort())) {
-          this.labelsOptions = this.processLabelsOptions()
-          this.labelsSelected = selected
-          this.$emit('update:selected', this.labelsSelected)
+        if (this.needInitData) {
+          this.labelsOptions = this.selectedObj
+          this.labelsSelected = this.selectedObj.map(o => o[this.valueKey])
+          this.$nextTick(function () {this.labelsOptions = []})
         }
+        this.needInitData = true
       },
       updateSelected () {
+        const options = this.selectedObj.concat(this.labelsOptions)
         const selectedObj = []
         for (let i = this.labelsSelected.length; i--;) {
           const item = this.labelsSelected[i]
-          let obj = this.labelsOptions.find(o => String(o[this.valueKey]) === String(item))
+          let obj = options.find(o => String(o[this.valueKey]) === String(item))
           if (obj) {
             selectedObj.push(obj)
-          } else {
-            this.labelsSelected.splice(i, 1)
           }
         }
+        this.needInitData = false
         this.$emit('update:selectedObj', selectedObj)
         this.$emit('update:selected', this.labelsSelected)
+        this.labelsOptions = []
+//        this.$forceUpdate()
       },
-      createOption (label) {
+      async createOption (label) {
         // 如果允许创建，并且是用户输入了label
         if (this.apiUrlCreate && label) {
           const hasOptionIndex = this.labelsOptions.findIndex(o => String(o[this.labelKey]) === String(label))
@@ -145,25 +146,21 @@
           if (hasOptionIndex === -1) {
             let body = {}
             body[this.labelKey] = label
-            this.ajax.post(this.apiUrlCreate, body).then((res) => {
-              this.labelsOptions = this.processLabelsOptions([getObjectItemByPath(res, this.apiUrlCreateResPath)])
-              this.$forceUpdate()
-            })
-            return true
+            try {
+              const res = await this.ajax.post(this.apiUrlCreate, body)
+              const newOption = getObjectItemByPath(res, this.apiUrlCreateResPath)
+              this.labelsOptions = [newOption]
+//              this.$forceUpdate()
+              return true
+            } catch (e) {}
           }
         }
         return false
       },
-      processLabelsOptions (data = []) {
-        this.selectedObj.forEach(o => {
-          delArrayItemByValue(data, o[this.valueKey], this.valueKey)
-        })
-        return JSON.parse(JSON.stringify(this.selectedObj)).concat(data)
-      },
       async getLabelsOptions (search = '') {
+        this.labelsLoading = true
         search = String(search).trim()
         if (search) {
-          this.labelsLoading = true
           try {
             const res = await this.ajax.get(this.apiUrlOptions, {
               params: {
@@ -172,13 +169,11 @@
                 [this.apiUrlOptionsParamsKey.search]: search
               }
             })
-            this.labelsOptions = this.processLabelsOptions(getObjectItemByPath(res, this.apiUrlOptionsResPath))
-            this.createOption(search)
+            this.labelsOptions = getObjectItemByPath(res, this.apiUrlOptionsResPath)
+            await this.createOption(search)
           } catch (e) {}
-          this.labelsLoading = false
-        } else {
-          this.labelsOptions = this.processLabelsOptions()
         }
+        this.labelsLoading = false
       }
     }
   }
