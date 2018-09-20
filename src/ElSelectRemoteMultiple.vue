@@ -5,8 +5,9 @@
                v-model="labelsSelected"
                multiple :allow-create="Boolean(apiUrlCreate)"
                filterable remote :remote-method="getLabelsOptions" :loading="labelsLoading" :disabled="disabled">
-      <el-option v-for="(item,index) in labelsOptions" :key="index" :label="item[labelKey]" :value="item[valueKey]">
-      </el-option>
+      <template v-for="item in labelsOptions">
+        <el-option :key="item[valueKey]" :label="item[labelKey]" :value="item[valueKey]" v-if="item[valueKey]"/>
+      </template>
     </el-select>
     <slot>
     </slot>
