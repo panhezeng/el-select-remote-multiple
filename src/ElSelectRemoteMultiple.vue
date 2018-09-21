@@ -125,6 +125,7 @@
             }
             return accumulator
           }, [])
+          this.$emit('update:selected', this.labelsSelected)
           this.$nextTick(function () {this.labelsOptions = []})
         }
         this.needInitData = true
