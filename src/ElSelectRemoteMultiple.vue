@@ -22,7 +22,7 @@
 
   export default {
     name: 'ElSelectRemoteMultiple',
-    components: {'el-select': Select, 'el-option': Option},
+    components: { 'el-select': Select, 'el-option': Option },
     props: {
       // selectedObj是选中Option对象的key-value数组，el-select的默认选中数据显示，必须依赖此数据，如果只有selected的value数组，无法获得对应的label显示
       // 本组件默认选中数据的显示，只依赖此对象
@@ -121,7 +121,7 @@
           this.labelsOptions = this.selectedObj
           this.labelsSelected = this.selectedObj.reduce((accumulator, current) => {
             if (Object.prototype.toString.call(current) === '[object Object]' && current[this.valueKey]) {
-              accumulator.push(current[this.valueKey])
+              accumulator.push(Number(current[this.valueKey]))
             }
             return accumulator
           }, [])
@@ -130,14 +130,33 @@
         }
         this.needInitData = true
       },
-      updateSelected () {
+      async updateSelected () {
         const options = this.selectedObj.concat(this.labelsOptions)
         const selectedObj = []
         for (let i = this.labelsSelected.length; i--;) {
           const item = this.labelsSelected[i]
-          let obj = options.find(o => String(o[this.valueKey]) === String(item))
-          if (Object.prototype.toString.call(obj) === '[object Object]' && Object.keys(obj).length) {
-            selectedObj.push(obj)
+//          console.log(item, Object.prototype.toString.call(item))
+          if (Object.prototype.toString.call(item) === '[object Number]') {
+            let obj = options.find(o => parseInt(o[this.valueKey]) === parseInt(item))
+            if (Object.prototype.toString.call(obj) === '[object Object]' && Object.keys(obj).length) {
+              selectedObj.push(obj)
+            } else {
+              this.labelsSelected.splice(i, 1)
+            }
+          } else if (Object.prototype.toString.call(item) === '[object String]' && this.apiUrlCreate) {
+            let body = {}
+            body[this.labelKey] = item.trim()
+            try {
+              const res = await this.ajax.post(this.apiUrlCreate, body)
+              const newOption = getObjectItemByPath(res, this.apiUrlCreateResPath)
+              selectedObj.push(newOption)
+              this.labelsSelected[i] = parseInt(newOption[this.valueKey])
+//              console.log(this.labelsSelected[i], Object.prototype.toString.call(this.labelsSelected[i]))
+            } catch (e) {
+              this.labelsSelected.splice(i, 1)
+            }
+          } else {
+            this.labelsSelected.splice(i, 1)
           }
         }
         this.needInitData = false
@@ -145,27 +164,11 @@
         this.$emit('update:selected', this.labelsSelected)
         this.labelsOptions = []
 //        this.$forceUpdate()
-      },
-      async createOption (label) {
-        // 如果允许创建，并且是用户输入了label
-        if (this.apiUrlCreate && label) {
-          const hasOptionIndex = this.labelsOptions.findIndex(o => String(o[this.labelKey]) === String(label))
-          // 如果输入的label不在搜索返回的Options列表中，则发送创建Option请求，并在回调中更新该Option数据
-          if (hasOptionIndex === -1) {
-            let body = {}
-            body[this.labelKey] = label
-            try {
-              const res = await this.ajax.post(this.apiUrlCreate, body)
-              const newOption = getObjectItemByPath(res, this.apiUrlCreateResPath)
-              this.labelsOptions = [newOption]
-//              this.$forceUpdate()
-              return true
-            } catch (e) {}
-          }
-        }
-        return false
+//        console.log(this.labelsSelected)
+//        console.log(selectedObj)
       },
       async getLabelsOptions (search = '') {
+        let options = []
         this.labelsLoading = true
         search = String(search).trim()
         if (search) {
@@ -177,12 +180,26 @@
                 [this.apiUrlOptionsParamsKey.search]: search
               }
             })
-            this.labelsOptions = getObjectItemByPath(res, this.apiUrlOptionsResPath)
-            await this.createOption(search)
+
+            options = getObjectItemByPath(res, this.apiUrlOptionsResPath)
+            // 如果是数组，则判断搜索关键字是不是在搜索列表中，
+            // 否则重置为空数组
+            if (Object.prototype.toString.call(options) === '[object Array]') {
+              const hasOptionIndex = options.findIndex(o => String(o[this.labelKey]) === search)
+              // 如果输入的label不在搜索返回的Options列表中，并且不允许创建，则重置为空数组
+              if (hasOptionIndex === -1 && !this.apiUrlCreate) {
+                options = []
+              }
+            } else {
+              options = []
+            }
           } catch (e) {}
         }
+        this.labelsOptions = options
         this.labelsLoading = false
       }
     }
   }
 </script>
+
+
