@@ -186,8 +186,15 @@
             // 否则重置为空数组
             if (Object.prototype.toString.call(options) === '[object Array]') {
               const hasOptionIndex = options.findIndex(o => String(o[this.labelKey]) === search)
-              // 如果输入的label不在搜索返回的Options列表中，并且不允许创建，则重置为空数组
-              if (hasOptionIndex === -1 && !this.apiUrlCreate) {
+              // 如果搜索返回的Options列表中有和关键字完全匹配的，则把它移到第一项
+              // 否则如果不允许创建，则重置为空数组
+              if (hasOptionIndex > -1) {
+                if (hasOptionIndex > 0) {
+                  const b = options[0]
+                  options[0] = options[hasOptionIndex]
+                  options[hasOptionIndex] = b
+                }
+              } else if (!this.apiUrlCreate) {
                 options = []
               }
             } else {
