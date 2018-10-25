@@ -76,7 +76,7 @@
       // 一次搜索多少条Options
       apiUrlOptionsLimit: {
         type: Number,
-        default: 100
+        default: 10
       },
       // ajax返回res对象获取Options数据的path
       apiUrlOptionsResPath: {
