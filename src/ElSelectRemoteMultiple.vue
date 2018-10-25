@@ -180,22 +180,16 @@
                 [this.apiUrlOptionsParamsKey.search]: search
               }
             })
-
             options = getObjectItemByPath(res, this.apiUrlOptionsResPath)
             // 如果是数组，则判断搜索关键字是不是在搜索列表中，
             // 否则重置为空数组
             if (Object.prototype.toString.call(options) === '[object Array]') {
               const hasOptionIndex = options.findIndex(o => String(o[this.labelKey]) === search)
-              // 如果搜索返回的Options列表中有和关键字完全匹配的，则把它移到第一项
-              // 否则如果不允许创建，则重置为空数组
-              if (hasOptionIndex > -1) {
-                if (hasOptionIndex > 0) {
-                  const b = options[0]
-                  options[0] = options[hasOptionIndex]
-                  options[hasOptionIndex] = b
-                }
-              } else if (!this.apiUrlCreate) {
-                options = []
+              // 如果搜索返回的Options列表中有和关键字完全匹配，并且不是第一项，则把它移到第一项
+              if (hasOptionIndex > 0) {
+                const b = options[0]
+                options[0] = options[hasOptionIndex]
+                options[hasOptionIndex] = b
               }
             } else {
               options = []
