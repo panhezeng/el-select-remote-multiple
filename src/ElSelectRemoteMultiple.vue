@@ -125,7 +125,7 @@
             }
             return accumulator
           }, [])
-          this.$emit('update:selected', this.labelsSelected)
+          this.$emit('update:selected', this.labelsSelected.slice())
           this.$nextTick(function () {this.labelsOptions = []})
         }
         this.needInitData = true
@@ -161,7 +161,7 @@
         }
         this.needInitData = false
         this.$emit('update:selectedObj', selectedObj)
-        this.$emit('update:selected', this.labelsSelected)
+        this.$emit('update:selected', this.labelsSelected.slice())
         this.labelsOptions = []
 //        this.$forceUpdate()
 //        console.log(this.labelsSelected)
@@ -201,5 +201,3 @@
     }
   }
 </script>
-
-
