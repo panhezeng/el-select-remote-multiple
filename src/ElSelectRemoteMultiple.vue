@@ -3,7 +3,7 @@
     <el-select style="width:100%;" :placeholder="placeholder"
                @change="updateSelected"
                v-model="labelsSelected"
-               multiple :allow-create="Boolean(apiUrlCreate)"
+               multiple
                filterable remote :remote-method="getLabelsOptions" :loading="labelsLoading" :disabled="disabled">
       <template v-for="item in labelsOptions">
         <template v-if="item && item[valueKey]">
@@ -19,6 +19,8 @@
 <script>
   import { Select, Option } from 'element-ui'
   import getObjectItemByPath from '@panhezeng/utils/dist/get-object-item-by-path.js'
+
+  const CreateTempPlaceholderValue = 'ElSelectRemoteMultipleCreateTempPlaceholderValue'
 
   export default {
     name: 'ElSelectRemoteMultiple',
@@ -112,6 +114,7 @@
         immediate: true,
         handler (val, oldVal) {
           this.initData()
+          this.needInitData = true
         }
       }
     },
@@ -121,39 +124,38 @@
           this.labelsOptions = this.selectedObj
           this.labelsSelected = this.selectedObj.reduce((accumulator, current) => {
             if (Object.prototype.toString.call(current) === '[object Object]' && current[this.valueKey]) {
-              accumulator.push(Number(current[this.valueKey]))
+              accumulator.push(current[this.valueKey])
             }
             return accumulator
           }, [])
           this.$emit('update:selected', this.labelsSelected.slice())
           this.$nextTick(function () {this.labelsOptions = []})
         }
-        this.needInitData = true
       },
       async updateSelected () {
         const options = this.selectedObj.concat(this.labelsOptions)
         const selectedObj = []
+        // 遍历选中的value
         for (let i = this.labelsSelected.length; i--;) {
-          const item = this.labelsSelected[i]
-//          console.log(item, Object.prototype.toString.call(item))
-          if (Object.prototype.toString.call(item) === '[object Number]') {
-            let obj = options.find(o => parseInt(o[this.valueKey]) === parseInt(item))
-            if (Object.prototype.toString.call(obj) === '[object Object]' && Object.keys(obj).length) {
-              selectedObj.push(obj)
-            } else {
-              this.labelsSelected.splice(i, 1)
-            }
-          } else if (Object.prototype.toString.call(item) === '[object String]' && this.apiUrlCreate) {
-            let body = {}
-            body[this.labelKey] = item.trim()
-            try {
-              const res = await this.ajax.post(this.apiUrlCreate, body)
-              const newOption = getObjectItemByPath(res, this.apiUrlCreateResPath)
-              selectedObj.push(newOption)
-              this.labelsSelected[i] = parseInt(newOption[this.valueKey])
+          const value = this.labelsSelected[i]
+//          console.log(value, 'value', String(value) === CreateTempPlaceholderValue)
+          const option = options.find(o => String(o[this.valueKey]) === String(value))
+          // 如果有完全匹配的选项
+          // 否则删除改选中值
+          if (Object.prototype.toString.call(option) === '[object Object]') {
+            // 如果是临时新创建的选项值，则发送给后端，获得后端入库后的value值，并且替换临时值
+            if (String(value) === CreateTempPlaceholderValue) {
+              try {
+                const res = await this.ajax.post(this.apiUrlCreate, { [this.labelKey]: option[this.labelKey] })
+                const newOption = getObjectItemByPath(res, this.apiUrlCreateResPath)
+                selectedObj.push(newOption)
+                this.labelsSelected[i] = newOption[this.valueKey]
 //              console.log(this.labelsSelected[i], Object.prototype.toString.call(this.labelsSelected[i]))
-            } catch (e) {
-              this.labelsSelected.splice(i, 1)
+              } catch (e) {
+                this.labelsSelected.splice(i, 1)
+              }
+            } else {
+              selectedObj.push(option)
             }
           } else {
             this.labelsSelected.splice(i, 1)
@@ -164,29 +166,45 @@
         this.$emit('update:selected', this.labelsSelected.slice())
         this.labelsOptions = []
 //        this.$forceUpdate()
-//        console.log(this.labelsSelected)
+//        console.log(this.labelsSelected, 'this.labelsSelected')
 //        console.log(selectedObj)
       },
-      async getLabelsOptions (search = '') {
+      async getLabelsOptions (label = '') {
         let options = []
         this.labelsLoading = true
-        search = String(search).trim()
-        if (search) {
+        label = String(label).trim()
+        if (label) {
           try {
             const res = await this.ajax.get(this.apiUrlOptions, {
               params: {
                 [this.apiUrlOptionsParamsKey.limit]: this.apiUrlOptionsLimit,
                 [this.apiUrlOptionsParamsKey.offset]: 0,
-                [this.apiUrlOptionsParamsKey.search]: search
+                [this.apiUrlOptionsParamsKey.search]: label
               }
             })
             options = getObjectItemByPath(res, this.apiUrlOptionsResPath)
-            // 如果是数组，则判断搜索关键字是不是在搜索列表中，
+            // 如果是数组，则判断搜索关键字是不是在搜索列表中
+            // 否则如果可以创建
             // 否则重置为空数组
             if (Object.prototype.toString.call(options) === '[object Array]') {
-              const hasOptionIndex = options.findIndex(o => String(o[this.labelKey]) === search)
-              // 如果搜索返回的Options列表中有和关键字完全匹配，并且不是第一项，则把它移到第一项
-              if (hasOptionIndex > 0) {
+//              console.log(label, 'label')
+              const hasOptionIndex = options.findIndex(o => {
+//                console.log(o[this.labelKey], label, 'findIndex')
+                return String(o[this.labelKey]) === label
+              })
+//              console.log(hasOptionIndex, 'hasOptionIndex')
+              // 如果搜索返回的Options列表中没有匹配的选项
+              // 否则如果匹配的选项不是第一项，则把它移到第一项
+              if (hasOptionIndex === -1) {
+                const option = this.selectedObj.find(o => String(o[this.labelKey]) === String(label))
+                // 如果已选中选项中有匹配选项，则加到第一项
+                // 否则如果允许创建，则新建临时选项数据加到第一项，后面updateSelected再进一步处理
+                if (Object.prototype.toString.call(option) === '[object Object]') {
+                  options.unshift(option)
+                } else if (this.apiUrlCreate) {
+                  options.unshift({ [this.labelKey]: label, [this.valueKey]: CreateTempPlaceholderValue })
+                }
+              } else if (hasOptionIndex > 0) {
                 const b = options[0]
                 options[0] = options[hasOptionIndex]
                 options[hasOptionIndex] = b
@@ -198,6 +216,7 @@
         }
         this.labelsOptions = options
         this.labelsLoading = false
+//        console.log(options, 'options')
       }
     }
   }
