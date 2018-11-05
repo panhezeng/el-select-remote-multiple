@@ -133,7 +133,7 @@
         }
       },
       async updateSelected () {
-        const options = this.selectedObj.concat(this.labelsOptions)
+        const options = this.labelsOptions = this.selectedObj.concat(this.labelsOptions)
         const selectedObj = []
         // 遍历选中的value
         for (let i = this.labelsSelected.length; i--;) {
@@ -149,6 +149,7 @@
                 const res = await this.ajax.post(this.apiUrlCreate, { [this.labelKey]: option[this.labelKey] })
                 const newOption = getObjectItemByPath(res, this.apiUrlCreateResPath)
                 selectedObj.push(newOption)
+                this.labelsOptions.push(newOption)
                 this.labelsSelected[i] = newOption[this.valueKey]
 //              console.log(this.labelsSelected[i], Object.prototype.toString.call(this.labelsSelected[i]))
               } catch (e) {
@@ -164,7 +165,7 @@
         this.needInitData = false
         this.$emit('update:selectedObj', selectedObj)
         this.$emit('update:selected', this.labelsSelected.slice())
-        this.labelsOptions = []
+        this.$nextTick(function () {this.labelsOptions = []})
 //        this.$forceUpdate()
 //        console.log(this.labelsSelected, 'this.labelsSelected')
 //        console.log(selectedObj)
