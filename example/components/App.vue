@@ -11,7 +11,7 @@
       :selected-obj.sync="selectedObj"
       :selected.sync="selected"
       placeholder="输入关键字，从搜索结果中选择"
-    ></el-select-remote-multiple>
+    />
   </div>
 </template>
 
