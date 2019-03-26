@@ -11,7 +11,11 @@
       :selected-obj.sync="selectedObj"
       :selected.sync="selected"
       placeholder="输入关键字，从搜索结果中选择"
-    />
+    >
+      <template v-slot:prefix>
+        <span>test</span>
+      </template>
+    </el-select-remote-multiple>
   </div>
 </template>
 

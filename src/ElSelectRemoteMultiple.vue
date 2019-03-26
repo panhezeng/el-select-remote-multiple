@@ -14,6 +14,13 @@
       :remote-method="getLabelsOptions"
       :loading="labelsLoading"
     >
+      <slot />
+      <template v-slot:prefix>
+        <slot name="prefix" />
+      </template>
+      <template v-slot:empty>
+        <slot name="empty" />
+      </template>
       <template v-for="item in labelsOptions">
         <template v-if="item && item[valueKey]">
           <el-option
