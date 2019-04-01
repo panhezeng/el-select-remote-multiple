@@ -15,10 +15,10 @@
       :loading="labelsLoading"
     >
       <slot />
-      <template v-slot:prefix>
+      <template v-slot:prefix="">
         <slot name="prefix" />
       </template>
-      <template v-slot:empty>
+      <template v-slot:empty="">
         <slot name="empty" />
       </template>
       <template v-for="item in labelsOptions">
