@@ -114,7 +114,7 @@ export default {
       type: Function,
       default: undefined
     },
-    // 创建Option的api地址，默认undefined，即el-select的allow-create属性为false，不允许创建Option
+    // 创建Option的api url，默认undefined，即el-select的allow-create属性为false，不允许创建Option
     apiCreateUrl: {
       type: String,
       default: ""

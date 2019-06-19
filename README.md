@@ -78,15 +78,22 @@ export default {
     // 一次搜索多少条Options
     apiOptionsLimit: {
       type: Number,
-      default: 100
+      default: 10
     },
     // ajax返回res对象获取Options数据的path
     apiOptionsResPath: {
       type: String,
       default: "data"
     },
-    // 创建Option的api地址，默认undefined，即el-select的allow-create属性为false，不允许创建Option
-    apiCreateUrl: String,
+    apiOptionsCallback: {
+      type: Function,
+      default: undefined
+    },
+    // 创建Option的api url，默认undefined，即el-select的allow-create属性为false，不允许创建Option
+    apiCreateUrl: {
+      type: String,
+      default: ""
+    },
     // ajax返回res对象获取创建Options数据的path
     apiCreateResPath: {
       type: String,
