@@ -61,7 +61,7 @@ export default {
   methods: {
     apiOptionsCallback(options) {
       options.forEach(item => {
-        item.name = "id:" + item.id + " " + "name:" + item.name;
+        this.$set(item, "name", "id:" + item.id + " " + "name:" + item.name);
       });
     }
   }
