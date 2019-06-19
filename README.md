@@ -60,12 +60,12 @@ export default {
       required: true
     },
     // 获得下拉Options的api url
-    apiUrlOptions: {
+    apiOptionsUrl: {
       type: String,
       required: true
     },
     // 获得下拉Options的api参数key
-    apiUrlOptionsParamsKey: {
+    apiOptionsParamKeys: {
       type: Object,
       default() {
         return {
@@ -76,19 +76,19 @@ export default {
       }
     },
     // 一次搜索多少条Options
-    apiUrlOptionsLimit: {
+    apiOptionsLimit: {
       type: Number,
       default: 100
     },
     // ajax返回res对象获取Options数据的path
-    apiUrlOptionsResPath: {
+    apiOptionsResPath: {
       type: String,
       default: "data"
     },
     // 创建Option的api地址，默认undefined，即el-select的allow-create属性为false，不允许创建Option
-    apiUrlCreate: String,
+    apiCreateUrl: String,
     // ajax返回res对象获取创建Options数据的path
-    apiUrlCreateResPath: {
+    apiCreateResPath: {
       type: String,
       default: "data"
     },
@@ -190,6 +190,6 @@ npm run dev:example
 npm run build
 
 # 发版
-npm set @panhezeng:registry https://registry.npmjs.org/ && npm version patch && npm publish --access public && npm set @panhezeng:registry https://registry.npm.taobao.org/
+npm set registry https://registry.npmjs.org/ && npm set @panhezeng:registry https://registry.npmjs.org/ && npm version patch && npm publish --access public && npm set registry https://registry.npm.taobao.org/ && npm set @panhezeng:registry https://registry.npm.taobao.org/
 
 ```

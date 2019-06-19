@@ -85,12 +85,12 @@ export default {
       required: true
     },
     // 获得下拉Options的api url
-    apiUrlOptions: {
+    apiOptionsUrl: {
       type: String,
       required: true
     },
     // 获得下拉Options的api参数key
-    apiUrlOptionsParamsKey: {
+    apiOptionsParamKeys: {
       type: Object,
       default() {
         return {
@@ -101,19 +101,26 @@ export default {
       }
     },
     // 一次搜索多少条Options
-    apiUrlOptionsLimit: {
+    apiOptionsLimit: {
       type: Number,
       default: 10
     },
     // ajax返回res对象获取Options数据的path
-    apiUrlOptionsResPath: {
+    apiOptionsResPath: {
       type: String,
       default: "data"
     },
+    apiOptionsCallback: {
+      type: Function,
+      default: undefined
+    },
     // 创建Option的api地址，默认undefined，即el-select的allow-create属性为false，不允许创建Option
-    apiUrlCreate: String,
+    apiCreateUrl: {
+      type: String,
+      default: ""
+    },
     // ajax返回res对象获取创建Options数据的path
-    apiUrlCreateResPath: {
+    apiCreateResPath: {
       type: String,
       default: "data"
     },
@@ -166,7 +173,6 @@ export default {
       }
     },
     async updateSelected() {
-      debugger;
       const options = (this.labelsOptions = this.selectedObj.concat(
         this.labelsOptions
       ));
@@ -184,13 +190,10 @@ export default {
           // 如果是临时新创建的选项值，则发送给后端，获得后端入库后的value值，并且替换临时值
           if (String(value) === CreateTempPlaceholderValue) {
             try {
-              const res = await this.ajax.post(this.apiUrlCreate, {
+              const res = await this.ajax.post(this.apiCreateUrl, {
                 [this.labelKey]: option[this.labelKey]
               });
-              const newOption = getObjectItemByPath(
-                res,
-                this.apiUrlCreateResPath
-              );
+              const newOption = getObjectItemByPath(res, this.apiCreateResPath);
               selectedObj.push(newOption);
               this.labelsOptions.push(newOption);
               this.labelsSelected[i] = newOption[this.valueKey];
@@ -221,14 +224,14 @@ export default {
       label = String(label).trim();
       if (label) {
         try {
-          const res = await this.ajax.get(this.apiUrlOptions, {
+          const res = await this.ajax.get(this.apiOptionsUrl, {
             params: {
-              [this.apiUrlOptionsParamsKey.limit]: this.apiUrlOptionsLimit,
-              [this.apiUrlOptionsParamsKey.offset]: 0,
-              [this.apiUrlOptionsParamsKey.search]: label
+              [this.apiOptionsParamKeys.limit]: this.apiOptionsLimit,
+              [this.apiOptionsParamKeys.offset]: 0,
+              [this.apiOptionsParamKeys.search]: label
             }
           });
-          options = getObjectItemByPath(res, this.apiUrlOptionsResPath);
+          options = getObjectItemByPath(res, this.apiOptionsResPath);
           // 如果是数组，则判断搜索关键字是不是在搜索列表中
           // 否则如果可以创建
           // 否则重置为空数组
@@ -251,7 +254,7 @@ export default {
                 Object.prototype.toString.call(option) === "[object Object]"
               ) {
                 options.unshift(option);
-              } else if (this.apiUrlCreate) {
+              } else if (this.apiCreateUrl) {
                 options.unshift({
                   [this.labelKey]: label,
                   [this.valueKey]: CreateTempPlaceholderValue
@@ -266,6 +269,12 @@ export default {
             options = [];
           }
         } catch (e) {}
+      }
+      if (
+        Object.prototype.toString.call(this.apiOptionsCallback) ===
+        "[object Function]"
+      ) {
+        this.apiOptionsCallback(options);
       }
       this.labelsOptions = options;
       this.labelsLoading = false;

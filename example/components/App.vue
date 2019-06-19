@@ -5,9 +5,10 @@
       ，创建功能只支持输入 Option name 2
     </h1>
     <el-select-remote-multiple
-      :api-url-options="apiUrlOptions"
-      :api-url-create="apiUrlCreate"
-      api-url-options-res-path="data.data"
+      :api-options-url="apiOptionsUrl"
+      :api-create-url="apiCreateUrl"
+      api-options-res-path="data.data"
+      :api-options-callback="apiOptionsCallback"
       :selected-obj.sync="selectedObj"
       :selected.sync="selected"
       placeholder="输入关键字，从搜索结果中选择"
@@ -18,9 +19,9 @@
     </el-select-remote-multiple>
 
     <el-select-remote-multiple
-      :api-url-options="apiUrlOptions"
-      :api-url-create="apiUrlCreate"
-      api-url-options-res-path="data.data"
+      :api-options-url="apiOptionsUrl"
+      :api-create-url="apiCreateUrl"
+      api-options-res-path="data.data"
       :selected-obj.sync="selectedObj"
       :selected.sync="selected"
       placeholder="输入关键字，从搜索结果中选择"
@@ -49,13 +50,20 @@ export default {
   //    components: {ElSelectRemoteMultiple},
   data() {
     return {
-      apiUrlOptions:
+      apiOptionsUrl:
         "https://private-87040-publicexample.apiary-mock.com/el-select-remote-multiple/options",
-      apiUrlCreate:
+      apiCreateUrl:
         "https://private-87040-publicexample.apiary-mock.com/el-select-remote-multiple/option",
       selected: [],
       selectedObj: []
     };
+  },
+  methods: {
+    apiOptionsCallback(options) {
+      options.forEach(item => {
+        item.name = "id:" + item.id + " " + "name:" + item.name;
+      });
+    }
   }
 };
 </script>
