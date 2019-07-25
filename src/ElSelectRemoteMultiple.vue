@@ -270,9 +270,11 @@ export default {
           }
         } catch (e) {}
       }
+
       if (
-        Object.prototype.toString.call(this.apiOptionsCallback) ===
-        "[object Function]"
+        /^\[object [^F]*Function\]$/.test(
+          Object.prototype.toString.call(this.apiOptionsCallback)
+        )
       ) {
         this.apiOptionsCallback(options);
       }
