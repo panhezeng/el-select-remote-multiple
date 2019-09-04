@@ -1,18 +1,18 @@
 <template>
   <div>
     <el-select
+      v-model="labelsSelected"
       style="width:100%;"
       :placeholder="placeholder"
-      v-model="labelsSelected"
-      v-bind="$attrs"
-      v-on="$listeners"
       :disabled="disabled"
-      @change="updateSelected"
       multiple
       filterable
       remote
       :remote-method="getLabelsOptions"
       :loading="labelsLoading"
+      v-bind="$attrs"
+      @change="updateSelected"
+      v-on="$listeners"
     >
       <slot />
       <template v-slot:prefix="">
@@ -144,7 +144,7 @@ export default {
   watch: {
     selectedObj: {
       immediate: true,
-      handler(val, oldVal) {
+      handler() {
         this.initData();
         this.needInitData = true;
       }
@@ -167,15 +167,16 @@ export default {
           []
         );
         this.$emit("update:selected", this.labelsSelected.slice());
-        this.$nextTick(function() {
-          this.labelsOptions = [];
-        });
       }
+      this.$nextTick(function() {
+        this.labelsOptions = [];
+      });
     },
     async updateSelected() {
-      const options = (this.labelsOptions = this.selectedObj.concat(
-        this.labelsOptions
-      ));
+      // const options = (this.labelsOptions = this.selectedObj.concat(
+      //   this.labelsOptions
+      // ));
+      const options = this.labelsOptions;
       const selectedObj = [];
       // 遍历选中的value
       for (let i = this.labelsSelected.length; i--; ) {
@@ -209,11 +210,11 @@ export default {
         }
       }
       this.needInitData = false;
-      this.$emit("update:selectedObj", selectedObj);
       this.$emit("update:selected", this.labelsSelected.slice());
-      this.$nextTick(function() {
-        this.labelsOptions = [];
-      });
+      this.$emit("update:selectedObj", selectedObj);
+      // this.$nextTick(function() {
+      //   this.labelsOptions = [];
+      // });
       //        this.$forceUpdate()
       //        console.log(this.labelsSelected, 'this.labelsSelected')
       //        console.log(selectedObj)
@@ -223,54 +224,54 @@ export default {
       this.labelsLoading = true;
       label = String(label).trim();
       if (label) {
-        try {
-          const res = await this.ajax.get(this.apiOptionsUrl, {
-            params: {
-              [this.apiOptionsParamKeys.limit]: this.apiOptionsLimit,
-              [this.apiOptionsParamKeys.offset]: 0,
-              [this.apiOptionsParamKeys.search]: label
-            }
-          });
-          options = getObjectItemByPath(res, this.apiOptionsResPath);
-          // 如果是数组，则判断搜索关键字是不是在搜索列表中
-          // 否则如果可以创建
-          // 否则重置为空数组
-          if (Object.prototype.toString.call(options) === "[object Array]") {
-            //              console.log(label, 'label')
-            const hasOptionIndex = options.findIndex(o => {
-              //                console.log(o[this.labelKey], label, 'findIndex')
-              return String(o[this.labelKey]) === label;
-            });
-            //              console.log(hasOptionIndex, 'hasOptionIndex')
-            // 如果搜索返回的Options列表中没有匹配的选项
-            // 否则如果匹配的选项不是第一项，则把它移到第一项
-            if (hasOptionIndex === -1) {
-              const option = this.selectedObj.find(
-                o => String(o[this.labelKey]) === String(label)
-              );
-              // 如果已选中选项中有匹配选项，则加到第一项
-              // 否则如果允许创建，则新建临时选项数据加到第一项，后面updateSelected再进一步处理
-              if (
-                Object.prototype.toString.call(option) === "[object Object]"
-              ) {
-                options.unshift(option);
-              } else if (this.apiCreateUrl) {
-                options.unshift({
-                  [this.labelKey]: label,
-                  [this.valueKey]: CreateTempPlaceholderValue
-                });
-              }
-            } else if (hasOptionIndex > 0) {
-              const b = options[0];
-              options[0] = options[hasOptionIndex];
-              options[hasOptionIndex] = b;
-            }
-          } else {
-            options = [];
+        const res = await this.ajax.get(this.apiOptionsUrl, {
+          params: {
+            [this.apiOptionsParamKeys.limit]: this.apiOptionsLimit,
+            [this.apiOptionsParamKeys.offset]: 0,
+            [this.apiOptionsParamKeys.search]: label
           }
-        } catch (e) {}
+        });
+        options = getObjectItemByPath(res, this.apiOptionsResPath);
+        // 如果是数组，则判断搜索关键字是不是在搜索列表中
+        // 否则如果可以创建
+        // 否则重置为空数组
+        if (Array.isArray(options)) {
+          if (options.length) {
+            this.selectedObj.forEach(selected => {
+              if (
+                !options.some(
+                  option =>
+                    String(option[this.valueKey]) === selected[this.valueKey]
+                )
+              ) {
+                options.push(selected);
+              }
+            });
+          } else {
+            options = options.concat(this.selectedObj);
+          }
+          //              console.log(label, 'label')
+          const hasOptionIndex = options.findIndex(o => {
+            //                console.log(o[this.labelKey], label, 'findIndex')
+            return String(o[this.labelKey]) === label;
+          });
+          //              console.log(hasOptionIndex, 'hasOptionIndex')
+          // 如果匹配的选项不是第一项，则把它移到第一项
+          // 如果搜索返回的Options列表中没有匹配的选项，并且允许创建，则新建临时选项数据加到第一项，后面updateSelected再进一步处理
+          if (hasOptionIndex > 0) {
+            const b = options[0];
+            options[0] = options[hasOptionIndex];
+            options[hasOptionIndex] = b;
+          } else if (hasOptionIndex === -1 && this.apiCreateUrl) {
+            options.unshift({
+              [this.labelKey]: label,
+              [this.valueKey]: CreateTempPlaceholderValue
+            });
+          }
+        } else {
+          options = [];
+        }
       }
-
       if (
         /^\[object [^F]*Function\]$/.test(
           Object.prototype.toString.call(this.apiOptionsCallback)
