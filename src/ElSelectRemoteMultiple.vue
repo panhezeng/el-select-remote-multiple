@@ -151,9 +151,19 @@ export default {
     }
   },
   methods: {
+    updateOptions(options) {
+      if (
+        /^\[object [^F]*Function\]$/.test(
+          Object.prototype.toString.call(this.apiOptionsCallback)
+        )
+      ) {
+        this.apiOptionsCallback(options);
+      }
+      this.labelsOptions = options;
+    },
     initData() {
+      this.updateOptions(this.selectedObj);
       if (this.needInitData) {
-        this.labelsOptions = this.selectedObj;
         this.labelsSelected = this.selectedObj.reduce(
           (accumulator, current) => {
             if (
@@ -168,9 +178,6 @@ export default {
         );
         this.$emit("update:selected", this.labelsSelected.slice());
       }
-      this.$nextTick(function() {
-        this.labelsOptions = [];
-      });
     },
     async updateSelected() {
       // const options = (this.labelsOptions = this.selectedObj.concat(
@@ -269,17 +276,10 @@ export default {
             });
           }
         } else {
-          options = [];
+          options = this.selectedObj;
         }
       }
-      if (
-        /^\[object [^F]*Function\]$/.test(
-          Object.prototype.toString.call(this.apiOptionsCallback)
-        )
-      ) {
-        this.apiOptionsCallback(options);
-      }
-      this.labelsOptions = options;
+      this.updateOptions(options);
       this.labelsLoading = false;
       //        console.log(options, 'options')
     }

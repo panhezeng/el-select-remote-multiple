@@ -40,8 +40,8 @@ import Vue from "vue";
 // import '@panhezeng/vue-axios'
 
 window.ElSelectRemoteMultipleOptions = { ajax: Vue.http };
-require("../../dist/el-select-remote-multiple.min");
-// require("../../src");
+// require("../../dist/el-select-remote-multiple.min");
+require("../../src");
 
 //  const ElSelectRemoteMultiple = () => import('../../dist/el-select-remote-multiple.min')
 
