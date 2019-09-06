@@ -183,7 +183,7 @@ export default {
       // const options = (this.labelsOptions = this.selectedObj.concat(
       //   this.labelsOptions
       // ));
-      const options = this.labelsOptions;
+      const options = this.selectedObj.concat(this.labelsOptions);
       const selectedObj = [];
       // 遍历选中的value
       for (let i = this.labelsSelected.length; i--; ) {
@@ -217,8 +217,8 @@ export default {
         }
       }
       this.needInitData = false;
-      this.$emit("update:selected", this.labelsSelected.slice());
       this.$emit("update:selectedObj", selectedObj);
+      this.$emit("update:selected", this.labelsSelected.slice());
       // this.$nextTick(function() {
       //   this.labelsOptions = [];
       // });
@@ -239,45 +239,56 @@ export default {
           }
         });
         options = getObjectItemByPath(res, this.apiOptionsResPath);
-        // 如果是数组，则判断搜索关键字是不是在搜索列表中
-        // 否则如果可以创建
-        // 否则重置为空数组
-        if (Array.isArray(options)) {
-          if (options.length) {
-            this.selectedObj.forEach(selected => {
-              if (
-                !options.some(
-                  option =>
-                    String(option[this.valueKey]) === selected[this.valueKey]
-                )
-              ) {
-                options.push(selected);
-              }
-            });
-          } else {
-            options = options.concat(this.selectedObj);
-          }
+        // 如果是数组，并且有长度
+        if (Array.isArray(options) && options.length) {
+          // if (options.length) {
+          //   this.selectedObj.forEach(selected => {
+          //     if (
+          //       !options.some(
+          //         option =>
+          //           String(option[this.valueKey]) === selected[this.valueKey]
+          //       )
+          //     ) {
+          //       options.push(selected);
+          //     }
+          //   });
+          // } else {
+          //   options = options.concat(this.selectedObj);
+          // }
           //              console.log(label, 'label')
-          const hasOptionIndex = options.findIndex(o => {
-            //                console.log(o[this.labelKey], label, 'findIndex')
-            return String(o[this.labelKey]) === label;
-          });
-          //              console.log(hasOptionIndex, 'hasOptionIndex')
-          // 如果匹配的选项不是第一项，则把它移到第一项
-          // 如果搜索返回的Options列表中没有匹配的选项，并且允许创建，则新建临时选项数据加到第一项，后面updateSelected再进一步处理
-          if (hasOptionIndex > 0) {
-            const b = options[0];
-            options[0] = options[hasOptionIndex];
-            options[hasOptionIndex] = b;
-          } else if (hasOptionIndex === -1 && this.apiCreateUrl) {
+          // const hasOptionIndex = options.findIndex(o => {
+          //   //                console.log(o[this.labelKey], label, 'findIndex')
+          //   return String(o[this.labelKey]) === label;
+          // });
+          // //              console.log(hasOptionIndex, 'hasOptionIndex')
+          // // 如果匹配的选项不是第一项，则把它移到第一项
+          // // 如果搜索返回的Options列表中没有匹配的选项，并且允许创建，则新建临时选项数据加到第一项，后面updateSelected再进一步处理
+          // if (hasOptionIndex > 0) {
+          //   const b = options[0];
+          //   options[0] = options[hasOptionIndex];
+          //   options[hasOptionIndex] = b;
+          // } else if (hasOptionIndex === -1 && this.apiCreateUrl) {
+          //   options.unshift({
+          //     [this.labelKey]: label,
+          //     [this.valueKey]: CreateTempPlaceholderValue
+          //   });
+          // }
+          // 如果允许创建，并且已选Options和搜索返回的Options列表中没有匹配的选项，则新建临时选项数据加到第一项，后面updateSelected再进一步处理
+          if (
+            this.apiCreateUrl &&
+            !this.selectedObj
+              .concat(options)
+              .some(o => String(o[this.labelKey]) === label)
+          ) {
             options.unshift({
               [this.labelKey]: label,
               [this.valueKey]: CreateTempPlaceholderValue
             });
           }
-        } else {
-          options = this.selectedObj;
         }
+      }
+      if (!options.length) {
+        options = this.selectedObj;
       }
       this.updateOptions(options);
       this.labelsLoading = false;

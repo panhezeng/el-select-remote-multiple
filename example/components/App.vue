@@ -61,7 +61,12 @@ export default {
   methods: {
     apiOptionsCallback(options) {
       options.forEach(item => {
-        this.$set(item, "name", "id:" + item.id + " " + "name:" + item.name);
+        if (!item.nameBackup) item.nameBackup = item.name;
+        this.$set(
+          item,
+          "name",
+          "id:" + item.id + " " + "name:" + item.nameBackup
+        );
       });
     }
   }
