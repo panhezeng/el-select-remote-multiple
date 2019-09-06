@@ -137,16 +137,16 @@ export default {
     return {
       labelsSelected: [],
       labelsOptions: [],
-      labelsLoading: false,
-      needInitData: true
+      labelsLoading: false
+      // needInitData: true
     };
   },
   watch: {
     selectedObj: {
       immediate: true,
       handler() {
-        this.initData();
-        this.needInitData = true;
+        this.update();
+        // this.needInitData = true;
       }
     }
   },
@@ -161,9 +161,9 @@ export default {
       }
       this.labelsOptions = options;
     },
-    initData() {
+    update() {
       this.updateOptions(this.selectedObj);
-      if (this.needInitData) {
+      this.$nextTick(function() {
         this.labelsSelected = this.selectedObj.reduce(
           (accumulator, current) => {
             if (
@@ -176,49 +176,58 @@ export default {
           },
           []
         );
-        this.$emit("update:selected", this.labelsSelected.slice());
-      }
+        if (
+          JSON.stringify(this.selected.sort()) !==
+          JSON.stringify(this.labelsSelected.sort())
+        ) {
+          this.$emit("update:selected", this.labelsSelected.slice());
+          // console.log("update:selected", this.labelsSelected);
+          // debugger
+        }
+      });
     },
     async updateSelected() {
       // const options = (this.labelsOptions = this.selectedObj.concat(
       //   this.labelsOptions
       // ));
+      const selected = this.labelsSelected.slice();
       const options = this.selectedObj.concat(this.labelsOptions);
       const selectedObj = [];
       // 遍历选中的value
-      for (let i = this.labelsSelected.length; i--; ) {
-        const value = this.labelsSelected[i];
-        //          console.log(value, 'value', String(value) === CreateTempPlaceholderValue)
-        const option = options.find(
-          o => String(o[this.valueKey]) === String(value)
-        );
+      for (let i = selected.length; i--; ) {
+        const value = selected[i];
+        // let selectedOptionIndex = -1;
+        let selectedOption = null;
+        for (let j = options.length; j--; ) {
+          const option = options[j];
+          if (String(option[this.valueKey]) === String(value)) {
+            // selectedOptionIndex = j;
+            selectedOption = option;
+            break;
+          }
+        }
         // 如果有完全匹配的选项
         // 否则删除改选中值
-        if (Object.prototype.toString.call(option) === "[object Object]") {
+        if (selectedOption) {
           // 如果是临时新创建的选项值，则发送给后端，获得后端入库后的value值，并且替换临时值
           if (String(value) === CreateTempPlaceholderValue) {
             try {
               const res = await this.ajax.post(this.apiCreateUrl, {
-                [this.labelKey]: option[this.labelKey]
+                [this.labelKey]: selectedOption[this.labelKey]
               });
               const newOption = getObjectItemByPath(res, this.apiCreateResPath);
               selectedObj.push(newOption);
-              this.labelsOptions.push(newOption);
-              this.labelsSelected[i] = newOption[this.valueKey];
-              //              console.log(this.labelsSelected[i], Object.prototype.toString.call(this.labelsSelected[i]))
             } catch (e) {
-              this.labelsSelected.splice(i, 1);
+              continue;
             }
           } else {
-            selectedObj.push(option);
+            selectedObj.push(selectedOption);
           }
-        } else {
-          this.labelsSelected.splice(i, 1);
         }
       }
-      this.needInitData = false;
+      // this.needInitData = false;
       this.$emit("update:selectedObj", selectedObj);
-      this.$emit("update:selected", this.labelsSelected.slice());
+      // this.$emit("update:selected", this.labelsSelected.slice());
       // this.$nextTick(function() {
       //   this.labelsOptions = [];
       // });
