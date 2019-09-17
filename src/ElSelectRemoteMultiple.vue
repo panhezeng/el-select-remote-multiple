@@ -162,28 +162,31 @@ export default {
       this.labelsOptions = options;
     },
     update() {
-      this.updateOptions(this.selectedObj);
+      this.labelsSelected = [];
       this.$nextTick(function() {
-        this.labelsSelected = this.selectedObj.reduce(
-          (accumulator, current) => {
-            if (
-              Object.prototype.toString.call(current) === "[object Object]" &&
-              current[this.valueKey]
-            ) {
-              accumulator.push(current[this.valueKey]);
-            }
-            return accumulator;
-          },
-          []
-        );
-        if (
-          JSON.stringify(this.selected.sort()) !==
-          JSON.stringify(this.labelsSelected.sort())
-        ) {
-          this.$emit("update:selected", this.labelsSelected.slice());
-          // console.log("update:selected", this.labelsSelected);
-          // debugger
-        }
+        this.updateOptions(this.selectedObj);
+        this.$nextTick(function() {
+          this.labelsSelected = this.selectedObj.reduce(
+            (accumulator, current) => {
+              if (
+                Object.prototype.toString.call(current) === "[object Object]" &&
+                current[this.valueKey]
+              ) {
+                accumulator.push(current[this.valueKey]);
+              }
+              return accumulator;
+            },
+            []
+          );
+          if (
+            JSON.stringify(this.selected.sort()) !==
+            JSON.stringify(this.labelsSelected.sort())
+          ) {
+            this.$emit("update:selected", this.labelsSelected.slice());
+            // console.log("update:selected", this.labelsSelected);
+            // debugger
+          }
+        });
       });
     },
     async updateSelected() {
