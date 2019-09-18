@@ -39,8 +39,7 @@
 import { Select, Option } from "element-ui";
 import getObjectItemByPath from "@panhezeng/utils/dist/get-object-item-by-path.js";
 
-const CreateTempPlaceholderValue =
-  "ElSelectRemoteMultipleCreateTempPlaceholderValue";
+const CreateTempPlaceholderValue = " ";
 
 export default {
   name: "ElSelectRemoteMultiple",
