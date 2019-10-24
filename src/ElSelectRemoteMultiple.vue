@@ -178,8 +178,8 @@ export default {
             []
           );
           if (
-            JSON.stringify(this.selected.sort()) !==
-            JSON.stringify(this.labelsSelected.sort())
+            JSON.stringify(this.selected.slice().sort()) !==
+            JSON.stringify(this.labelsSelected.slice().sort())
           ) {
             this.$emit("update:selected", this.labelsSelected.slice());
             // console.log("update:selected", this.labelsSelected);
@@ -196,7 +196,7 @@ export default {
       const options = this.selectedObj.concat(this.labelsOptions);
       const selectedObj = [];
       // 遍历选中的value
-      for (let i = selected.length; i--; ) {
+      for (let i = 0, length = selected.length; i < length; i++) {
         const value = selected[i];
         // let selectedOptionIndex = -1;
         let selectedOption = null;
